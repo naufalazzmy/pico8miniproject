@@ -57,6 +57,8 @@ function startgame()
 	 newstar.spd=rnd(1.5)+0.5
 	 add(stars,newstar)
 	end
+	
+	buls={}
 end
 
 
@@ -120,8 +122,11 @@ function update_game()
 	 shipsy=2
 	end
 	if btnp(❎) then
-	 bulx=shipx
-	 buly=shipy-3
+	 local newbul={
+	  x=shipx,
+	  y=shipy-3
+	 }
+	 add(buls,newbul)
 	 sfx(0)
 	 muzzle=7
 	end
@@ -131,8 +136,14 @@ function update_game()
 	shipy=shipy+shipsy
 	
 	--move the bullet
-	buly=buly-4
-	
+	for i=#buls,1,-1 do
+	 local mybul=buls[i]
+	 mybul.y=mybul.y-4
+	 
+	 if mybul.y<-8 then
+	  del(buls,mybul)
+	 end
+	end
 	
 	--animate flame
 	flamespr=flamespr+1
@@ -182,7 +193,11 @@ function draw_game()
 	spr(shipspr,shipx,shipy)
 	spr(flamespr,shipx,shipy+8)
 	
-	spr(16,bulx,buly)
+	--draw bullets
+	for i=1,#buls do
+	 local mybul=buls[i]
+	 spr(16,mybul.x,mybul.y)
+	end
 	
 	if muzzle>0 then
 	 circfill(shipx+3,shipy-2,muzzle,7)
