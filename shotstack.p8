@@ -20,6 +20,8 @@ function _draw()
  
  spr(0,32,0,2,2)
  spr(2,48,0,2,2)
+ 
+ spr(4,32,112,2,2)
 end
 __gfx__
 8888888888888888bbbbbbbbbbbbbbbbccccccccccccccccaaaaaaaaaaaaaaaa0000000000000000000000000000000000000000000000000000000000000000
