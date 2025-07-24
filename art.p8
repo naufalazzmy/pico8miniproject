@@ -49,6 +49,8 @@ function startgame()
 	score=999
 	
 	lives=1
+	firerate=5
+	fire_cd=0
 	
 	stars={}
 	for i=1,100 do
@@ -74,6 +76,17 @@ end
 
 -->8
 --tools
+function shot()
+	local newbul={
+  x=ship.x,
+  y=ship.y-3,
+  spr=16
+ }
+ add(buls,newbul)
+ sfx(0)
+ muzzle=7
+end
+
 function starfield()
  for i=1,#stars do
   local mystar=stars[i]
@@ -154,16 +167,14 @@ function update_game()
 	if btn(⬇️) then
 	 ship.sy=2
 	end
-	if btnp(❎) then
-	 local newbul={
-	  x=ship.x,
-	  y=ship.y-3,
-	  spr=16
-	 }
-	 add(buls,newbul)
-	 sfx(0)
-	 muzzle=7
+	if btn(❎) and fire_cd == 0 then
+	 shot()
+	 fire_cd=firerate
 	end
+	
+ if fire_cd>0 then
+  fire_cd-=1
+ end
  
 	--moving the ship
 	ship.x+=ship.sx
