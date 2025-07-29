@@ -16,8 +16,12 @@ function _update()
   update_game()
  elseif mode=="start" then
   update_start()
+ elseif mode=="wavetext" then
+  update_wavetext()
  elseif mode=="over" then
   update_over()
+ elseif mode=="win" then
+  update_win()
  end
 end
 
@@ -26,17 +30,22 @@ function _draw()
   draw_game()
  elseif mode=="start" then
   draw_start()
+ elseif mode=="wavetext" then
+  draw_wavetext()
  elseif mode=="over" then
   draw_over()
+ elseif mode=="win" then
+  draw_win()
  end
 end
 
 function startgame()
- mode="game"
+ wave=0
+ nextwave()
  
  ship={
-  x=64,
-  y=64,
+  x=60,
+  y=110,
   sx=0,
   sy=0,
   spr=2
@@ -70,8 +79,6 @@ function startgame()
 	explodes={}
 	parts={}
 	shwaves={}
-	
-	spawnen()
 end
 
 
@@ -347,10 +354,12 @@ function update_game()
 	   if myen.hp<=0 then
 		   del(enemies,myen)
 		   sfx(2)
-		   spawnen()
 		   explode(myen.x+4,myen.y+4)
 		  end
-	  end
+		  if #enemies==0 then
+		   nextwave()
+		  end
+	  end 
 	 end
 	end
 	
@@ -413,14 +422,47 @@ function update_game()
 end
 
 function update_start()
- if btnp(❎) or btnp(🅾️) then
-  startgame()
+ if btn(❎)==false and btn(🅾️)==false then
+  btnrelease=true
+ end
+ if btnrelease then
+  if btnp(❎) or btnp(🅾️) then
+   startgame()
+   btnrelease=false
+  end
  end
 end
 
 function update_over()
- if btnp(❎) or btnp(🅾️) then
-  mode="start"
+ if btn(❎)==false and btn(🅾️)==false then
+  btnrelease=true
+ end
+ if btnrelease then
+  if btnp(❎) or btnp(🅾️) then
+   mode="start"
+   btnrelease=false
+  end
+ end
+end
+
+function update_win()
+ if btn(❎)==false and btn(🅾️)==false then
+  btnrelease=true
+ end
+ if btnrelease then
+  if btnp(❎) or btnp(🅾️) then
+   mode="start"
+   btnrelease=false
+  end
+ end
+end
+
+function update_wavetext()
+ update_game() 
+ wavetime-=1
+ if wavetime<=0 then
+  mode="game"
+  spawnwave()
  end
 end
 -->8
@@ -521,6 +563,38 @@ function draw_over()
  cls(8)
  print("game over",48,30,2)
  print("press ❎ or 🅾️ to continue",15,80,blink())
+end
+
+function draw_win()
+ cls(3)
+ print("loh menang?!",30,30,2)
+ print("score "..score,30,38,2)
+ print("press ❎ or 🅾️ to continue",15,80,blink())
+end
+
+function draw_wavetext()
+ draw_game()
+ wavetime-=1
+ if wavetime>0 then
+  print("wave "..wave,52,52,blink())
+ end
+end
+-->8
+-- waves and enemies
+
+function spawnwave()
+ spawnen()
+end
+
+function nextwave()
+ wave+=1
+ 
+ if wave>4 then
+  mode="win"
+ else
+	 mode="wavetext"
+	 wavetime=80
+	end
 end
 __gfx__
 00000000000220000002200000022000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
