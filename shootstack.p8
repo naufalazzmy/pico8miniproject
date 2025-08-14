@@ -40,7 +40,7 @@ function _init()
 	
 	--generate ball prop
 	balls={}
-	for i=1,4 do
+	for i=1,3 do
 	 local ball={
 	  typ="ball",
 	  ismatch=true,
@@ -54,7 +54,9 @@ function _init()
 	
  --generate balls
  nextballs={
-  balls[flr(rnd(4)+1)]
+  balls[flr(rnd(#balls)+1)],
+  balls[flr(rnd(#balls)+1)],
+  balls[flr(rnd(#balls)+1)]
  }
  
  next_ball()
@@ -90,8 +92,8 @@ function next_ball()
  shooter.current.ypos=shooter.y
  shooter.current.xpos=shooter.x
  
+ add(nextballs, balls[flr(rnd(#balls)+1)])
  del(nextballs,nextballs[1])
- add(nextballs, balls[flr(rnd(4)+1)])
 end
 
 function spawn_all_columns_bottom()
@@ -114,6 +116,7 @@ function shoot(index,ball)
   targetpos=targetpos,
   spd=12
  }
+ 
 end
 
 
@@ -122,7 +125,7 @@ end
 function _update60()
   local dt = 1/60
   spawn_timer+=1/60
-  
+ 
   if spawn_timer >= spawn_interval then
    spawn_timer = 0
    spawn_all_columns_bottom()
@@ -143,6 +146,7 @@ function _update60()
     shooting=nil
     next_ball()
     canshoot=true
+    start_match_process()
    end
   end
 
@@ -162,11 +166,7 @@ function _update60()
     shoot(col+1,shooter.current)
   end
   
-  if btnp(🅾️) then
-   process_matches()
-  end
-  
-  
+  update_matches()
 end
 -->8
 --draw
@@ -223,24 +223,38 @@ function draw_shooter()
  spr(16,sx,sy)
 end
 
---draw balls in stack
 function draw_stacks()
- for col in all(columns) do
-  if #col.stacks>0 then
-	  local bottom=128-cell
-	  
-	  for ball in all(col.stacks) do
-	   if ball~=nil then
-     spr(ball.sprite,col.l,bottom)
-	    bottom-=cell
-	   end
-	  end
-	  
-	 end
+ for c=1,#columns do
+  if #columns[c].stacks > 0 then
+   local bottom = 128 - cell
+   for r=1,#columns[c].stacks do
+    local stack = columns[c].stacks[r]
+    if stack then
+     local blink = false
+     if match_state == "remove" and pending_matches and pending_matches[c][r] then
+      blink = (match_timer % 8) < 4
+     end
+     if blink then
+      spr(0, columns[c].l, bottom)
+     else
+      spr(stack.color, columns[c].l, bottom)
+     end
+    end
+    bottom -= cell
+   end
+  end
  end
 end
 -->8
 --match checker
+match_state = "idle" -- idle / remove / fall / wait
+match_timer = 0
+pending_matches = nil
+
+function start_match_process()
+ match_state = "check"
+end
+
 function find_matches()
  local to_remove = {}
 
@@ -326,6 +340,43 @@ function process_matches()
    if not has_match then break end
     remove_and_gravity(matches)
   end
+end
+
+--checking matches process
+function update_matches()
+ if match_state == "check" then
+  pending_matches = find_matches()
+  local found = false
+  for c=1,#pending_matches do
+   for r=1,#pending_matches[c] do
+    if pending_matches[c][r] then
+     found = true
+     break
+    end
+   end
+   if found then break end
+  end
+  if found then
+   match_state = "remove"
+   match_timer = 15 -- wait 15 frames to blink
+  else
+   match_state = "idle" -- done
+  end
+
+ elseif match_state == "remove" then
+  match_timer -= 1
+  if match_timer <= 0 then
+   remove_and_gravity(pending_matches)
+   match_state = "fall"
+   match_timer = 15 -- wait for falling animation
+  end
+
+ elseif match_state == "fall" then
+  match_timer -= 1
+  if match_timer <= 0 then
+   match_state = "check" -- check again for combo
+  end
+ end
 end
 __gfx__
 0077770000eeee0000cccc0000bbbb0000aaaa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
