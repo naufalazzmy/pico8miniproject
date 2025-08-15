@@ -258,12 +258,12 @@ end
 function find_matches()
  local to_remove = {}
 
- -- buat table kosong untuk tanda
-	for c=1,#columns do
-	 to_remove[c] = {}
-	 for r=1,#columns[c].stacks do
-	  to_remove[c][r] = false
-	 end
+ -- init table tanda
+ for c=1,#columns do
+  to_remove[c] = {}
+  for r=1,#columns[c].stacks do
+   to_remove[c][r] = false
+  end
  end
 
  -- cek horizontal
@@ -274,14 +274,12 @@ function find_matches()
    local curr = columns[c] and columns[c].stacks[r] or nil
   
    if curr and prev and curr.color == prev.color then
-    count = count + 1
+    count += 1
    else
     if count >= 3 then
-    
      for k=c-count, c-1 do
       to_remove[k][r] = true
      end
-     
     end
     count = 1
    end
@@ -295,14 +293,33 @@ function find_matches()
    local prev = columns[c].stacks[r-1]
    local curr = columns[c].stacks[r]
    if curr and prev and curr.color == prev.color then
-    count = count + 1
+    count += 1
    else
-	   if count >= 3 then
-	    for k=r-count, r-1 do
-	     to_remove[c][k] = true
-	    end
-	   end
-   count = 1
+    if count >= 3 then
+     for k=r-count, r-1 do
+      to_remove[c][k] = true
+     end
+    end
+    count = 1
+   end
+  end
+ end
+
+ -- cek square 2x2
+ for c=1,#columns-1 do
+  for r=1,#columns[c].stacks-1 do
+   local a = columns[c].stacks[r]
+   local b = columns[c+1].stacks[r]
+   local c1 = columns[c].stacks[r+1]
+   local d = columns[c+1].stacks[r+1]
+   if a and b and c1 and d and
+      a.color == b.color and
+      a.color == c1.color and
+      a.color == d.color then
+    to_remove[c][r] = true
+    to_remove[c+1][r] = true
+    to_remove[c][r+1] = true
+    to_remove[c+1][r+1] = true
    end
   end
  end
