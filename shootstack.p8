@@ -8,8 +8,13 @@ function _init()
 	colcount=11
 	columns={}
 	
-	combo=0
 	score=0
+	numball=0
+	
+	combo=0
+	combo_timer=0
+	combo_duration=3
+	
 	
 	spawn_timer=0
  spawn_interval=1000 -- seconds
@@ -104,6 +109,11 @@ function spawn_all_columns_bottom()
  end
 end
 
+function add_combo()
+ combo+=1
+ combo_timer=combo_duration*60
+end
+
 function shoot(index,ball)
  local targetpos=128-(cell*#columns[index].stacks)-cell
  local spd=1
@@ -125,6 +135,8 @@ end
 function _update60()
   local dt = 1/60
   spawn_timer+=1/60
+  
+  update_combo()
  
   if spawn_timer >= spawn_interval then
    spawn_timer = 0
@@ -168,6 +180,17 @@ function _update60()
   
   update_matches()
 end
+
+function update_combo()
+ if combo_timer>0 then
+  combo_timer-=1
+   if combo_timer==0 then
+    combo=0
+   end
+  end
+end
+
+
 -->8
 --draw
 function _draw()
@@ -182,7 +205,10 @@ end
 
 function debug_col()
  --local col=shooter_col()
- print(combo,2,2,7)
+-- print(combo,2,2,7)
+ print("combo: "..combo, 2, 2, 7)
+ print("timer: "..flr(combo_timer/30), 2, 10, 7)
+ print("#ball: "..numball, 2, 18, 7)
 -- print(shooter.current.ypos,56,56)
  --print(columns[1].stacks[1].color,7)
 end
@@ -328,7 +354,7 @@ function find_matches()
 end
 
 function remove_and_gravity(to_remove)
- combo+=1
+ add_combo()
  for c=1,#columns do
   local newstack = {}
   for r=1,#columns[c].stacks do
@@ -345,6 +371,7 @@ function process_matches()
  while true do
   local matches = find_matches()
   local has_match = false
+  
   for c=1,#matches do
    for r=1,#matches[c] do
     if matches[c][r] then
@@ -357,6 +384,7 @@ function process_matches()
    if not has_match then break end
     remove_and_gravity(matches)
   end
+  
 end
 
 --checking matches process
