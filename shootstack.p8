@@ -136,7 +136,7 @@ function _update60()
   local dt = 1/60
   spawn_timer+=1/60
   
-  update_combo()
+  update_score()
  
   if spawn_timer >= spawn_interval then
    spawn_timer = 0
@@ -181,11 +181,16 @@ function _update60()
   update_matches()
 end
 
-function update_combo()
+function update_score()
  if combo_timer>0 then
   combo_timer-=1
    if combo_timer==0 then
+    --calculate
+    score+=(combo*match_count)
+    
+    --reset
     combo=0
+    match_count=0
    end
   end
 end
@@ -208,7 +213,8 @@ function debug_col()
 -- print(combo,2,2,7)
  print("combo: "..combo, 2, 2, 7)
  print("timer: "..flr(combo_timer/30), 2, 10, 7)
- print("#ball: "..numball, 2, 18, 7)
+ print("#ball: "..match_count, 2, 18, 7)
+ print("score: "..score, 2, 26, 7)
 -- print(shooter.current.ypos,56,56)
  --print(columns[1].stacks[1].color,7)
 end
@@ -276,6 +282,7 @@ end
 match_state = "idle" -- idle / remove / fall / wait
 match_timer = 0
 pending_matches = nil
+match_count=0
 
 function start_match_process()
  match_state = "check"
@@ -349,7 +356,7 @@ function find_matches()
    end
   end
  end
-
+ 
  return to_remove
 end
 
@@ -411,6 +418,8 @@ function update_matches()
  elseif match_state == "remove" then
   match_timer -= 1
   if match_timer <= 0 then
+   match_count = count_matches(pending_matches)
+
    remove_and_gravity(pending_matches)
    match_state = "fall"
    match_timer = 15 -- wait for falling animation
@@ -422,6 +431,18 @@ function update_matches()
    match_state = "check" -- check again for combo
   end
  end
+end
+
+function count_matches(to_remove)
+ local count = 0
+ for c=1,#to_remove do
+  for r=1,#to_remove[c] do
+   if to_remove[c][r] then
+    count += 1
+   end
+  end
+ end
+ return count
 end
 __gfx__
 0077770000eeee0000cccc0000bbbb0000aaaa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
