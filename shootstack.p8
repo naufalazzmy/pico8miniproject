@@ -214,7 +214,7 @@ function debug_col()
  print("combo: "..combo, 2, 2, 7)
  print("timer: "..flr(combo_timer/30), 2, 10, 7)
  print("#ball: "..match_count, 2, 18, 7)
- print("score: "..score, 2, 26, 7)
+ print("score: "..(score*100), 2, 26, 7)
 -- print(shooter.current.ypos,56,56)
  --print(columns[1].stacks[1].color,7)
 end
