@@ -171,7 +171,7 @@ function _update60()
   shooter.x = clamp(shooter.x, min_x, max_x)
 
   -- snap ke grid & shoot
-  if btnp(❎) and canshoot then
+  if btnp(⬇️) and canshoot then
     local col = shooter_col()
     local target_cx = col * cell + (cell/2)
     shooter.x = clamp(target_cx - shooter.w/2, min_x, max_x)
