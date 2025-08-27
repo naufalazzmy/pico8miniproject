@@ -93,6 +93,17 @@ function shooter_col()
   return col
 end
 
+function create_to_destroy()
+  local to_destroy = {}
+  for c=1,#columns do
+    to_destroy[c] = {}
+    for r=1,#columns[c].stacks do
+      to_destroy[c][r] = false
+    end
+  end
+  return to_destroy
+end
+
 function next_ball()
  shooter.current=nextballs[1]
  shooter.current.ypos=shooter.y
@@ -162,10 +173,7 @@ function _update60()
     next_ball()
     
     if shooting.ball.typ!="ball" then
-     -- setaip stack ditaruh
-     -- ini harus di check dia tipe apa
-     -- fungsinya harus baru
-    	pending_power = shooting.index
+    	pending_power = shooting
     end
     start_match_process()
     shooting=nil
@@ -191,7 +199,7 @@ function _update60()
   end
   
   if btnp(❎) then
-   add_power()
+   add_power("square")
   end
   
   update_matches()
@@ -305,15 +313,7 @@ function start_match_process()
 end
 
 function find_matches()
- local to_remove = {}
-
- -- init table tanda
- for c=1,#columns do
-  to_remove[c] = {}
-  for r=1,#columns[c].stacks do
-   to_remove[c][r] = false
-  end
- end
+ local to_remove = create_to_destroy()
 
  -- cek horizontal
  for r=1,max_height() do
@@ -414,8 +414,7 @@ end
 function update_matches()
  if match_state == "check" then
 	 if pending_power then
-	   --todo: can support multiple   
-	   pending_matches = power_h(pending_power)
+	   pending_matches = power_handler(pending_power.ball.typ,pending_power.index)
 	   pending_power = nil
 	   match_state = "remove"
 	   match_timer = 15
@@ -471,9 +470,9 @@ function count_matches(to_remove)
 end
 -->8
 --powerup handler
-function add_power()
+function add_power(type)
   local ball={
-	  typ="power_h",
+	  typ=type,
 	  ismatch=true,
 	  sprite=0,
 	  color=i,
@@ -483,31 +482,35 @@ function add_power()
 	 nextballs[1]=ball
 end
 
+function power_handler(type,colpos)
+ if type=="horizontal" then
+  return  power_h(colpos)
+ elseif type=="vertical" then
+  return power_v(colpos)
+ elseif type=="square" then
+  return power_square(colpos)
+ end
+end
+
 function power_h(colpos)
   local col = columns[colpos]
   local cur_stack = #col.stacks
 
   -- siapkan table boolean kayak find_matches
-  local to_destroy = {}
-  for c=1,#columns do
-    to_destroy[c] = {}
-    for r=1,#columns[c].stacks do
-      to_destroy[c][r] = false
-    end
-  end
+  local to_destroy = create_to_destroy()
 
   -- hancurin bola di posisi yg kena efek powerup
   to_destroy[colpos][cur_stack] = true -- bola power sendiri
 
   -- kanan
-  for i=1,2 do
+  for i=1,3 do
     if columns[colpos+i] and columns[colpos+i].stacks[cur_stack] then
       to_destroy[colpos+i][cur_stack] = true
     end
   end
 
   -- kiri
-  for i=-1,-2,-1 do
+  for i=-1,-3,-1 do
     if columns[colpos+i] and columns[colpos+i].stacks[cur_stack] then
       to_destroy[colpos+i][cur_stack] = true
     end
@@ -515,6 +518,66 @@ function power_h(colpos)
   
   return to_destroy
   
+end
+
+function power_v(colpos)
+  local col = columns[colpos]
+  local cur_stack = #col.stacks
+
+  -- siapkan table boolean kayak find_matches
+  local to_destroy = create_to_destroy()
+
+  -- hancurin bola di posisi yg kena efek powerup
+  to_destroy[colpos][cur_stack] = true -- bola power sendiri
+
+  -- bawah
+  for i=1,3 do
+    if columns[colpos] and columns[colpos].stacks[cur_stack] then
+      to_destroy[colpos][cur_stack-i] = true
+    end
+  end
+  
+  return to_destroy
+end
+
+-- square pattern
+function power_square(colpos)
+  local col = columns[colpos]
+  local cur_stack = #col.stacks
+
+  local to_destroy = create_to_destroy()
+  to_destroy[colpos][cur_stack]=true -- bola power sendiri
+
+  --left
+  if columns[colpos-1] and columns[colpos-1].stacks[cur_stack] then
+    to_destroy[colpos-1][cur_stack] = true
+  end
+  --right
+  if columns[colpos+1] and columns[colpos+1].stacks[cur_stack] then
+    to_destroy[colpos+1][cur_stack] = true
+  end
+  --bot
+  if columns[colpos] and columns[colpos].stacks[cur_stack-1] then
+    to_destroy[colpos][cur_stack-1] = true
+  end
+  --topleft
+  if columns[colpos-1] and columns[colpos-1].stacks[cur_stack+1] then
+    to_destroy[colpos-1][cur_stack+1] = true
+  end
+  --botleft
+  if columns[colpos-1] and columns[colpos-1].stacks[cur_stack-1] then
+    to_destroy[colpos-1][cur_stack-1] = true
+  end
+  --topright
+  if columns[colpos+1] and columns[colpos+1].stacks[cur_stack+1] then
+    to_destroy[colpos+1][cur_stack+1] = true
+  end
+  --botright
+  if columns[colpos+1] and columns[colpos+1].stacks[cur_stack-1] then
+    to_destroy[colpos+1][cur_stack-1] = true
+  end
+  
+  return to_destroy
 end
 __gfx__
 0077770000eeee0000cccc0000bbbb0000aaaa000000000000222200000000000000000000000000000000000000000000000000000000000000000000000000
