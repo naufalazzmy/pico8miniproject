@@ -15,12 +15,13 @@ function _init()
 	combo_timer=0
 	combo_duration=3
 	
-	
 	spawn_timer=0
  spawn_interval=1000 -- seconds
 	
 	shooting=nil
 	canshoot=true
+	
+	pending_power=nil
 	
 	--columns grid map
 	for i=1,colcount do
@@ -158,17 +159,17 @@ function _update60()
    if shooting.ypos >= shooting.targetpos then
     add(columns[shooting.index].stacks, shooting.ball)
     
-	   if shooting.ball.typ!="ball" then
+    next_ball()
+    
+    if shooting.ball.typ!="ball" then
      -- setaip stack ditaruh
      -- ini harus di check dia tipe apa
      -- fungsinya harus baru
-    	power_h(shooting.index)
+    	pending_power = shooting.index
     end
-    
-    shooting=nil
-    next_ball()
-    canshoot=true
     start_match_process()
+    shooting=nil
+    canshoot=true
    
    end
   end
@@ -412,6 +413,15 @@ end
 --checking matches process
 function update_matches()
  if match_state == "check" then
+	 if pending_power then
+	   --todo: can support multiple   
+	   pending_matches = power_h(pending_power)
+	   pending_power = nil
+	   match_state = "remove"
+	   match_timer = 15
+	   return
+	 end
+    
   pending_matches = find_matches()
   local found = false
   for c=1,#pending_matches do
@@ -502,10 +512,9 @@ function power_h(colpos)
       to_destroy[colpos+i][cur_stack] = true
     end
   end
-
-  -- jalankan remove
-  match_state = "remove"
-  remove_and_gravity(to_destroy)
+  
+  return to_destroy
+  
 end
 __gfx__
 0077770000eeee0000cccc0000bbbb0000aaaa000000000000222200000000000000000000000000000000000000000000000000000000000000000000000000
